@@ -1,8 +1,7 @@
-import * as THREE from 'three'
 import Experience from '../Experience'
 import Environment from './Environment'
-import Floor from './Floor'
-import Fox from './Fox'
+import BakedModel from './BakedModel'
+import ScreenSpaceReflector from './ScreenSpaceReflector'
 
 export default class World {
 	constructor() {
@@ -11,15 +10,23 @@ export default class World {
 		this.resources = this.experience.resources
 
 		this.resources.on('ready', () => {
-			this.floor = new Floor()
-			this.fox = new Fox()
+			this.dark = new BakedModel('darkModel', 'bakedDark')
+			this.light = new BakedModel('lightModel', 'bakedLight')
+			this.walls = new BakedModel('wallsModel', 'bakedWalls')
+			this.wood = new BakedModel('woodModel', 'bakedWoods')
 			this.environment = new Environment()
+
+			if (this.walls.meshes.floor) {
+				this.floor = new ScreenSpaceReflector(this.walls.meshes.floor, {
+					texture: this.walls.texture,
+				})
+			}
 		})
 	}
 
 	update() {
-		if (this.fox) {
-			this.fox.update()
+		if (this.floor) {
+			this.floor.update()
 		}
 	}
 }

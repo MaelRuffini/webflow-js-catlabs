@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { TinyEmitter } from 'tiny-emitter'
 
 export default class Resources extends TinyEmitter {
@@ -12,13 +13,19 @@ export default class Resources extends TinyEmitter {
 		this.toLoad = this.sources.length
 		this.loaded = 0
 
+
 		this.setLoaders()
 		this.startLoading()
 	}
 
 	setLoaders() {
 		this.loaders = {}
+
+		const dracoLoader = new DRACOLoader()
+		dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/libs/draco/gltf/')
+
 		this.loaders.gltfLoader = new GLTFLoader()
+		this.loaders.gltfLoader.setDRACOLoader(dracoLoader)
 		this.loaders.textureLoader = new THREE.TextureLoader()
 		this.loaders.cubeTextureLoader = new THREE.CubeTextureLoader()
 	}

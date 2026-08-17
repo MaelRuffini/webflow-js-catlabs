@@ -1,6 +1,4 @@
-const ASSET_BASE = import.meta.env.DEV
-	? 'http://localhost:3000'
-	: 'https://webflow-js-catlabs.netlify.app'
+export const ASSET_BASE = 'https://webflow-js-catlabs.netlify.app'
 
 export default [
 	{

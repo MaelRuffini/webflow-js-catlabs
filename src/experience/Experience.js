@@ -3,6 +3,7 @@ import Sizes from './utils/Sizes'
 import Time from './utils/Time'
 import Camera from './Camera'
 import Renderer from './Renderer'
+import PostProcessing from './PostProcessing'
 import World from './world/World'
 import sources from './sources'
 import Debug from './utils/Debug'
@@ -31,6 +32,7 @@ export default class Experience {
 		this.resources = new Resources(sources)
 		this.camera = new Camera()
 		this.renderer = new Renderer()
+		this.postProcessing = new PostProcessing()
 		this.world = new World()
 
 		// Sizes resize event
@@ -42,26 +44,25 @@ export default class Experience {
 		this.time.on('tick', () => {
 			this.update()
 		})
-
-		setTimeout(() => {
-			this.destroy()
-		}, 1000)
 	}
 
 	resize() {
 		this.camera.resize()
 		this.renderer.resize()
+		this.postProcessing.resize()
 	}
 
 	update() {
 		this.camera.update()
 		this.world.update()
-		this.renderer.update()
+		this.postProcessing.update()
 	}
 
 	destroy() {
 		this.sizes.destroy()
 		this.time.destroy()
+		this.camera.destroy()
+		this.postProcessing.dispose()
 
 		// Traverse the whole scene
 		this.scene.traverse((child) => {
@@ -76,7 +77,6 @@ export default class Experience {
 				}
 			}
 
-			this.camera.controls.dispose()
 			this.renderer.instance.dispose()
 			if (this.debug.active) {
 				this.debug.ui.destroy()
