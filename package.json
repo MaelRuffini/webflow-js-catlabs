@@ -8,5 +8,10 @@
 	},
 	"devDependencies": {
 		"vite": "^6.1.0"
+	},
+	"dependencies": {
+		"lil-gui": "^0.21.0",
+		"three": "^0.185.1",
+		"tiny-emitter": "^2.1.0"
 	}
 }
