@@ -15,6 +15,8 @@ export default class World {
 			this.light = new BakedModel('lightModel', 'bakedLight')
 			this.walls = new BakedModel('wallsModel', 'bakedWalls')
 			this.wood = new BakedModel('woodModel', 'bakedWoods')
+			this.lightBis = new BakedModel('lightBisModel', 'bakedLightBis')
+			this.floor = new BakedModel('floorModel', 'bakedFloor')
 			this.environment = new Environment()
 
 			if (this.walls.meshes.floor) {

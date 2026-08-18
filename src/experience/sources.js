@@ -12,14 +12,29 @@ export default [
 		path: `${ASSET_BASE}/models/light.glb`,
 	},
 	{
+		name: 'lightBisModel',
+		type: 'gltfModel',
+		path: `${ASSET_BASE}/models/lightBis.glb`,
+	},
+	{
 		name: 'wallsModel',
 		type: 'gltfModel',
 		path: `${ASSET_BASE}/models/walls.glb`,
 	},
 	{
+		name: 'floorModel',
+		type: 'gltfModel',
+		path: `${ASSET_BASE}/models/floor.glb`,
+	},
+	{
 		name: 'woodModel',
 		type: 'gltfModel',
 		path: `${ASSET_BASE}/models/wood.glb`,
+	},
+	{
+		name: 'othersModel',
+		type: 'gltfModel',
+		path: `${ASSET_BASE}/models/others.glb`,
 	},
 	{
 		name: 'bakedDark',
@@ -32,9 +47,19 @@ export default [
 		path: `${ASSET_BASE}/textures/bakedLight.jpg`,
 	},
 	{
+		name: 'bakedLightBis',
+		type: 'texture',
+		path: `${ASSET_BASE}/textures/bakedLightBis.jpg`,
+	},
+	{
 		name: 'bakedWalls',
 		type: 'texture',
 		path: `${ASSET_BASE}/textures/bakedWalls.jpg`,
+	},
+	{
+		name: 'bakedFloor',
+		type: 'texture',
+		path: `${ASSET_BASE}/textures/bakedFloor.jpg`,
 	},
 	{
 		name: 'bakedWoods',
