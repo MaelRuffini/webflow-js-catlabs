@@ -25,11 +25,11 @@ export default class Camera {
 
 		this.views = {
 			home: {
-				positionX: 0,
-				positionY: 2.06,
-				positionZ: 15.58,
+				positionX: -4.585,
+				positionY: 1.63,
+				positionZ: 13.116,
 				rotationX: 0,
-				rotationY: 0,
+				rotationY: -0.47155,
 				rotationZ: 0,
 				focalLength: 55.2,
 			},
