@@ -1,5 +1,8 @@
 import * as THREE from 'three'
+import gsap from 'gsap'
 import Experience from './Experience'
+
+const NAMESPACES = ['home', 'creators', 'creator', 'contact']
 
 export default class Camera {
 	constructor() {
@@ -17,16 +20,72 @@ export default class Camera {
 		this.params = {
 			animationStrength: 0.5,
 			floatStrength: 2.0,
+			transitionDuration: 2,
+		}
+
+		this.views = {
+			home: {
+				positionX: 0,
+				positionY: 2.06,
+				positionZ: 15.58,
+				rotationX: 0,
+				rotationY: 0,
+				rotationZ: 0,
+				focalLength: 55.2,
+			},
+			creators: {
+				positionX: -0.23,
+				positionY: 1.389,
+				positionZ: 0.835,
+				rotationX: 0,
+				rotationY: 0,
+				rotationZ: 0,
+				focalLength: 55.2,
+			},
+			creator: {
+				positionX: -0.23,
+				positionY: 1.389,
+				positionZ: 0.835,
+				rotationX: 0,
+				rotationY: 0,
+				rotationZ: 0,
+				focalLength: 55.2,
+			},
+			contact: {
+				positionX: 1.807,
+				positionY: 1.807,
+				positionZ: 0.332,
+				rotationX: -0.02159,
+				rotationY: 0,
+				rotationZ: 0,
+				focalLength: 55.2,
+			},
 		}
 
 		this.mouse = { x: 0, y: 0 }
 		this.targetX = 0
 		this.targetY = 0
 		this.followEnabled = true
+		this.currentNamespace = null
+		this.timeline = null
+		this.motionScale = 1
 
 		this.setInstance()
+		this.goTo(this.getCurrentNamespace(), { immediate: true })
 		this.setMouse()
 		this.setDebug()
+	}
+
+	getCurrentNamespace() {
+		const container = document.querySelector('main[data-barba="container"]')
+
+		return (
+			container?.getAttribute('data-barba-namespace') ||
+			container?.getAttribute('data-namespace') ||
+			document.body.getAttribute('data-barba-namespace') ||
+			document.body.getAttribute('data-namespace') ||
+			'home'
+		)
 	}
 
 	focalLengthToFov(focalLength) {
@@ -46,7 +105,6 @@ export default class Camera {
 
 	setInstance() {
 		this.rig = new THREE.Group()
-		this.rig.position.set(0, 2.06, 15.58)
 
 		this.baseRotationY = new THREE.Group()
 		this.baseRotationX = new THREE.Group()
@@ -62,6 +120,97 @@ export default class Camera {
 		this.scene.add(this.rig)
 	}
 
+	getPose() {
+		return {
+			positionX: this.rig.position.x,
+			positionY: this.rig.position.y,
+			positionZ: this.rig.position.z,
+			rotationX: this.baseRotationX.rotation.x,
+			rotationY: this.baseRotationY.rotation.y,
+			rotationZ: this.rig.rotation.z,
+			focalLength: this.focalLength,
+		}
+	}
+
+	applyPose(pose) {
+		this.rig.position.set(pose.positionX, pose.positionY, pose.positionZ)
+		this.baseRotationX.rotation.x = pose.rotationX
+		this.baseRotationY.rotation.y = pose.rotationY
+		this.rig.rotation.z = pose.rotationZ
+		this.focalLength = pose.focalLength
+		this.applyFocalLength()
+	}
+
+	killTween() {
+		this.timeline?.kill()
+		this.timeline = null
+		gsap.killTweensOf(this, 'motionScale')
+	}
+
+	motionScaleFor(namespace) {
+		return namespace === 'creators' || namespace === 'creator' ? 0.03125 : 1
+	}
+
+	goTo(namespace, { immediate = false } = {}) {
+		const view = this.views[namespace] || this.views.home
+
+		if (!view) return this.timeline
+
+		this.currentNamespace = namespace
+		this.killTween()
+
+		const targetScale = this.motionScaleFor(namespace)
+
+		if (this.debugParams) {
+			this.debugParams.view = this.views[namespace] ? namespace : 'home'
+		}
+
+		if (immediate) {
+			this.motionScale = targetScale
+			this.applyPose(view)
+			this.rig.updateMatrixWorld(true)
+			this.updateDebugDisplay()
+			return this.timeline
+		}
+
+		const pose = this.getPose()
+		const duration = this.params.transitionDuration
+		const ease = 'power3.inOut'
+
+		this.timeline = gsap.to(pose, {
+			positionX: view.positionX,
+			positionY: view.positionY,
+			positionZ: view.positionZ,
+			rotationX: view.rotationX,
+			rotationY: view.rotationY,
+			rotationZ: view.rotationZ,
+			focalLength: view.focalLength,
+			duration,
+			ease,
+			overwrite: true,
+			onUpdate: () => {
+				this.applyPose(pose)
+				this.rig.updateMatrixWorld(true)
+			},
+			onComplete: () => {
+				this.applyPose(view)
+				this.motionScale = targetScale
+				this.rig.updateMatrixWorld(true)
+				this.updateDebugDisplay()
+				this.timeline = null
+			},
+		})
+
+		gsap.to(this, {
+			motionScale: targetScale,
+			duration,
+			ease,
+			overwrite: true,
+		})
+
+		return this.timeline
+	}
+
 	setMouse() {
 		this.onMouseMove = (event) => {
 			this.mouse.x = event.clientX - this.sizes.width * 0.5
@@ -71,11 +220,40 @@ export default class Camera {
 		document.addEventListener('mousemove', this.onMouseMove)
 	}
 
+	updateDebugDisplay() {
+		this.debugFolder?.controllers.forEach((controller) => controller.updateDisplay())
+	}
+
 	setDebug() {
 		if (!this.debug.active) return
 
+		this.debugParams = {
+			view: this.currentNamespace || 'home',
+			goToView: () => {
+				this.goTo(this.debugParams.view)
+			},
+			snapToView: () => {
+				this.goTo(this.debugParams.view, { immediate: true })
+			},
+			savePose: () => {
+				this.views[this.debugParams.view] = this.getPose()
+				console.log(`[camera] saved ${this.debugParams.view}`, this.views[this.debugParams.view])
+			},
+		}
+
 		this.debugFolder = this.debug.ui.addFolder('camera')
 		this.debugFolder.close()
+
+		this.debugFolder.add(this.debugParams, 'view', NAMESPACES).name('view')
+		this.debugFolder.add(this.debugParams, 'goToView').name('animate to view')
+		this.debugFolder.add(this.debugParams, 'snapToView').name('snap to view')
+		this.debugFolder.add(this.debugParams, 'savePose').name('save pose to view')
+		this.debugFolder
+			.add(this.params, 'transitionDuration')
+			.min(0.2)
+			.max(4)
+			.step(0.05)
+			.name('transition duration')
 
 		this.debugFolder.add(this.rig.position, 'x').min(-20).max(20).step(0.001).name('positionX')
 		this.debugFolder.add(this.rig.position, 'y').min(-20).max(20).step(0.001).name('positionY')
@@ -147,30 +325,33 @@ export default class Camera {
 		this.baseRotationX.rotation.y = 0
 		this.baseRotationX.rotation.z = 0
 
-		const verticalStrength = this.params.animationStrength
-		const horizontalStrength = this.params.animationStrength * 0.75
+		const cursorScale = this.motionScale
+		const verticalStrength = this.params.animationStrength * cursorScale
+		const horizontalStrength = this.params.animationStrength * 0.75 * cursorScale
+		const floatStrength = this.params.floatStrength * cursorScale
 
 		this.mouseAnimation.rotation.x =
-			this.targetY * 0.75 * verticalStrength + floatY * 0.01 * this.params.floatStrength
+			this.targetY * 0.75 * verticalStrength + floatY * 0.01 * floatStrength
 		this.mouseAnimation.rotation.y =
-			this.targetX * 1.5 * horizontalStrength + floatX * 0.01 * this.params.floatStrength
+			this.targetX * 1.5 * horizontalStrength + floatX * 0.01 * floatStrength
 		this.mouseAnimation.rotation.z = 0
 
 		const positionLerpFactor = 0.03
 		this.instance.position.y +=
 			positionLerpFactor * (-this.targetY * 7.5 * verticalStrength - this.instance.position.y) +
-			floatX * 0.1 * this.params.floatStrength
+			floatX * 0.1 * floatStrength
 		this.instance.position.z +=
 			positionLerpFactor * (this.targetY * 7.5 * verticalStrength - this.instance.position.z) +
-			floatY * 0.01 * this.params.floatStrength
+			floatY * 0.01 * floatStrength
 		this.instance.position.x +=
 			positionLerpFactor * (this.targetX * 10 * horizontalStrength - this.instance.position.x) +
-			floatX * 0.1 * this.params.floatStrength
+			floatX * 0.1 * floatStrength
 
 		this.rig.updateMatrixWorld(true)
 	}
 
 	destroy() {
+		this.killTween()
 		document.removeEventListener('mousemove', this.onMouseMove)
 	}
 }

@@ -1,6 +1,11 @@
 import * as THREE from 'three'
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import Experience from '../Experience'
+import { ASSET_BASE } from '../sources'
+import desktopCss from './screenDesktop.css?inline'
+import { fileIconHtml, fileThumb, getCreatorFiles } from './cmsCreators'
+
+const computerBase = `${ASSET_BASE}/computer`
 
 export default class Screen {
 	constructor(targetMesh) {
@@ -8,7 +13,6 @@ export default class Screen {
 		this.scene = this.experience.scene
 		this.cssScene = this.experience.cssRenderer.scene
 		this.debug = this.experience.debug
-		this.camera = this.experience.camera
 
 		this.targetMesh = targetMesh
 
@@ -26,7 +30,7 @@ export default class Screen {
 			rotationY: 0,
 			rotationZ: 0,
 			width: 0.353,
-			height: 0.267,
+			height: 0.279,
 			offset: 0.002,
 		}
 
@@ -57,46 +61,109 @@ export default class Screen {
 	}
 
 	setPage() {
+		this.files = getCreatorFiles()
+
 		this.element = document.createElement('div')
 		this.element.className = 'screen-page'
+		this.element.style.backgroundImage = `url(${computerBase}/background.jpg)`
 
-		this.element.innerHTML = `
-			<header class="screen-page__header">
-				<span>CATLABS</span>
-				<span class="screen-page__live">LIVE</span>
-			</header>
-			<div class="screen-page__body">
-				<p class="screen-page__title">Interactive screen</p>
-				<input class="screen-page__input" type="text" placeholder="Type something…" />
-				<button class="screen-page__button" type="button">Run experiment</button>
-				<p class="screen-page__status">Ready.</p>
+		this.shadow = this.element.attachShadow({ mode: 'open' })
+		this.shadow.innerHTML = `
+			<link rel="stylesheet" href="https://unpkg.com/98.css@0.1.21/dist/98.css" />
+			<style>${desktopCss}</style>
+			<div class="desktop">
+				<div class="desktop-icon" role="button" tabindex="0">
+					<img src="${computerBase}/folder-icon.svg" alt="" draggable="false" />
+					<span>Creators</span>
+				</div>
+				<div class="window creators-window">
+					<div class="title-bar">
+						<div class="title-bar-text">
+							<img class="title-bar-icon" src="${computerBase}/folder-icon.svg" alt="" />
+							Creators
+						</div>
+						<div class="title-bar-controls">
+							<button aria-label="Minimize"></button>
+							<button aria-label="Maximize"></button>
+							<button aria-label="Close"></button>
+						</div>
+					</div>
+					<div class="window-body">
+						<div class="file-grid">
+							${this.files.map((file, index) => fileIconHtml(file, index)).join('')}
+						</div>
+					</div>
+					<div class="status-bar">
+						<p class="status-bar-field">${this.files.length} object(s)</p>
+						<p class="status-bar-field"></p>
+					</div>
+				</div>
+				<div class="window profile-window is-hidden">
+					<div class="title-bar">
+						<div class="title-bar-text" data-profile-title>Creator profile</div>
+						<div class="title-bar-controls">
+							<button aria-label="Minimize"></button>
+							<button aria-label="Maximize"></button>
+							<button aria-label="Close" data-profile-close></button>
+						</div>
+					</div>
+					<div class="window-body profile-body">
+						<div class="profile-photo">
+							<img data-profile-image alt="" draggable="false" />
+						</div>
+						<div class="profile-info">
+							<div class="profile-name" data-profile-name></div>
+						</div>
+					</div>
+				</div>
 			</div>
 		`
 
-		this.input = this.element.querySelector('.screen-page__input')
-		this.button = this.element.querySelector('.screen-page__button')
-		this.status = this.element.querySelector('.screen-page__status')
+		this.desktop = this.shadow.querySelector('.desktop')
+		this.folder = this.shadow.querySelector('.desktop-icon')
+		this.windowEl = this.shadow.querySelector('.creators-window')
+		this.profileEl = this.shadow.querySelector('.profile-window')
+		this.profileTitle = this.shadow.querySelector('[data-profile-title]')
+		this.profileName = this.shadow.querySelector('[data-profile-name]')
+		this.profileImage = this.shadow.querySelector('[data-profile-image]')
 
-		this.button.addEventListener('click', () => {
-			const value = this.input.value.trim()
-			this.status.textContent = value ? `Running “${value}”…` : 'Running default protocol…'
+		this.folder.addEventListener('click', (event) => {
+			event.stopPropagation()
+			this.openFolder()
 		})
 
-		this.input.addEventListener('keydown', (event) => {
-			if (event.key === 'Enter') {
-				this.button.click()
-			}
+		this.desktop.addEventListener('click', (event) => {
+			if (event.target !== this.desktop) return
+			this.folder.classList.remove('is-selected')
+			this.clearFileSelection()
 		})
+
+		this.shadow.querySelectorAll('.file-icon').forEach((el) => {
+			el.addEventListener('click', (event) => {
+				event.stopPropagation()
+				this.clearFileSelection()
+				el.classList.add('is-selected')
+				this.openProfile(this.files[Number(el.dataset.index)])
+			})
+		})
+
+		this.windowEl.querySelector('[aria-label="Close"]').addEventListener('click', () => {
+			this.closeFolder()
+		})
+		this.windowEl.querySelector('[aria-label="Minimize"]').addEventListener('click', () => {
+			this.closeFolder()
+		})
+		this.profileEl.querySelector('[data-profile-close]').addEventListener('click', () => {
+			this.closeProfile()
+		})
+		this.profileEl.querySelector('[aria-label="Minimize"]').addEventListener('click', () => {
+			this.closeProfile()
+		})
+
+		this.openFolder()
 
 		this.cssObject = new CSS3DObject(this.element)
 		this.cssScene.add(this.cssObject)
-
-		this.element.addEventListener('pointerenter', () => {
-			this.camera.followEnabled = false
-		})
-		this.element.addEventListener('pointerleave', () => {
-			this.camera.followEnabled = true
-		})
 	}
 
 	applyPageScale() {
@@ -128,6 +195,36 @@ export default class Screen {
 
 	update() {
 		this.syncPage()
+	}
+
+	openFolder() {
+		this.windowEl.classList.remove('is-hidden')
+		this.folder.classList.add('is-selected')
+	}
+
+	closeFolder() {
+		this.closeProfile()
+		this.windowEl.classList.add('is-hidden')
+	}
+
+	openProfile(file) {
+		if (!file) return
+
+		this.profileTitle.textContent = `${file.name} – Creator profile`
+		this.profileName.textContent = file.name
+		this.profileImage.src = file.image || fileThumb(file.color || '#c0c0c0')
+		this.profileImage.alt = file.name
+		this.profileEl.classList.remove('is-hidden')
+	}
+
+	closeProfile() {
+		this.profileEl.classList.add('is-hidden')
+	}
+
+	clearFileSelection() {
+		this.shadow.querySelectorAll('.file-icon.is-selected').forEach((el) => {
+			el.classList.remove('is-selected')
+		})
 	}
 
 	setDebug() {

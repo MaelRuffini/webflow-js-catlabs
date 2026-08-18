@@ -1,0 +1,193 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: 'Pixelated MS Sans Serif', Arial, sans-serif;
+  font-size: 11px;
+}
+
+.desktop {
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 20px 24px;
+}
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 86px;
+  margin: 0;
+  padding: 4px 2px;
+  border: none;
+  background: rgba(255, 255, 255, 0.01);
+  cursor: default;
+  user-select: none;
+}
+
+.desktop-icon:focus {
+  outline: none;
+}
+
+.desktop-icon img,
+.desktop-icon span {
+  pointer-events: none;
+}
+
+.desktop-icon img {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+
+.desktop-icon span {
+  margin-top: 4px;
+  padding: 1px 5px;
+  color: #fff;
+  text-align: center;
+  text-shadow: 1px 1px #000;
+}
+
+.desktop-icon.is-selected span {
+  background: #000080;
+  text-shadow: none;
+}
+
+.creators-window {
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+}
+
+.creators-window.is-hidden {
+  display: none;
+}
+
+.creators-window .title-bar-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title-bar-icon {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+
+.creators-window .window-body {
+  margin: 0;
+  padding: 4px;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 84px);
+  gap: 12px 6px;
+  min-height: 220px;
+  padding: 12px 10px;
+  background: #fff;
+  box-shadow:
+    inset -1px -1px #fff,
+    inset 1px 1px #808080,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
+}
+
+.file-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 84px;
+  background: rgba(255, 255, 255, 0.01);
+  cursor: default;
+  user-select: none;
+}
+
+.file-icon:focus {
+  outline: none;
+}
+
+.file-icon img,
+.file-icon span {
+  pointer-events: none;
+}
+
+.file-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+}
+
+.file-icon span {
+  margin-top: 4px;
+  padding: 1px 4px;
+  color: #000;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+  pointer-events: none;
+}
+
+.file-icon.is-selected span {
+  background: #000080;
+  color: #fff;
+}
+
+.profile-window {
+  position: absolute;
+  top: 48%;
+  left: 56%;
+  width: 78%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.profile-window.is-hidden {
+  display: none;
+}
+
+.profile-body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 8px;
+  margin: 0;
+  padding: 8px;
+}
+
+.profile-photo {
+  overflow: hidden;
+  min-height: 240px;
+  background: #000;
+  box-shadow:
+    inset -1px -1px #fff,
+    inset 1px 1px #808080,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
+}
+
+.profile-photo img {
+  display: block;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-name {
+  padding: 10px 12px;
+  color: #fff;
+  background: #000080;
+  font-size: 16px;
+  line-height: 1.2;
+}

@@ -1,0 +1,28 @@
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+export let lenis = null
+
+function onTick(time) {
+	lenis?.raf(time * 1000)
+}
+
+export function initLenis() {
+	if (lenis) return lenis
+
+	lenis = new Lenis({
+		autoRaf: false,
+		anchors: true,
+		stopInertiaOnNavigate: true,
+	})
+
+	lenis.on('scroll', ScrollTrigger.update)
+	gsap.ticker.add(onTick)
+	gsap.ticker.lagSmoothing(0)
+
+	return lenis
+}
