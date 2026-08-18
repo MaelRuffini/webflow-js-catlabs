@@ -3,7 +3,7 @@ import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import Experience from '../Experience'
 import { ASSET_BASE } from '../sources'
 import desktopCss from './screenDesktop.css?inline'
-import { fileIconHtml, fileThumb, getCreatorFiles } from './cmsCreators'
+import { fileIconHtml, fileThumb, getCreatorFiles, profileFieldsHtml } from './cmsCreators'
 
 const computerBase = `${ASSET_BASE}/computer`
 
@@ -113,6 +113,10 @@ export default class Screen {
 						</div>
 						<div class="profile-info">
 							<div class="profile-name" data-profile-name></div>
+							<button type="button" class="profile-projects is-hidden" data-profile-link>
+								See Projects
+							</button>
+							<div class="profile-fields" data-profile-fields></div>
 						</div>
 					</div>
 				</div>
@@ -126,6 +130,8 @@ export default class Screen {
 		this.profileTitle = this.shadow.querySelector('[data-profile-title]')
 		this.profileName = this.shadow.querySelector('[data-profile-name]')
 		this.profileImage = this.shadow.querySelector('[data-profile-image]')
+		this.profileFields = this.shadow.querySelector('[data-profile-fields]')
+		this.profileLink = this.shadow.querySelector('[data-profile-link]')
 
 		this.folder.addEventListener('click', (event) => {
 			event.stopPropagation()
@@ -158,6 +164,12 @@ export default class Screen {
 		})
 		this.profileEl.querySelector('[aria-label="Minimize"]').addEventListener('click', () => {
 			this.closeProfile()
+		})
+		this.profileLink.addEventListener('click', (event) => {
+			event.stopPropagation()
+			if (this.profileLink.dataset.href) {
+				window.open(this.profileLink.dataset.href, '_blank', 'noopener,noreferrer')
+			}
 		})
 
 		this.openFolder()
@@ -214,6 +226,16 @@ export default class Screen {
 		this.profileName.textContent = file.name
 		this.profileImage.src = file.image || fileThumb(file.color || '#c0c0c0')
 		this.profileImage.alt = file.name
+		this.profileFields.innerHTML = profileFieldsHtml(file)
+
+		if (file.link) {
+			this.profileLink.dataset.href = file.link
+			this.profileLink.classList.remove('is-hidden')
+		} else {
+			delete this.profileLink.dataset.href
+			this.profileLink.classList.add('is-hidden')
+		}
+
 		this.profileEl.classList.remove('is-hidden')
 	}
 

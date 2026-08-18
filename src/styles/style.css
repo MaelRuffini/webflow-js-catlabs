@@ -17,7 +17,8 @@
   backface-visibility: hidden;
 }
 
-.computer-cms {
+.computer-cms,
+.creators__data {
   position: absolute;
   width: 1px;
   height: 1px;

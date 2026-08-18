@@ -7,6 +7,13 @@ const fallbackFiles = [
 	{ name: 'notes.gif', color: '#cfc07a' },
 ]
 
+export const profileFields = [
+	{ key: 'detail', label: 'Detail', selector: '.computer-cms__detail' },
+	{ key: 'superpower', label: 'Superpower', selector: '.computer-cms__superpower' },
+	{ key: 'make', label: 'What they make', selector: '.computer-cms__make' },
+	{ key: 'want', label: 'What they want', selector: '.computer-cms__want' },
+]
+
 function escapeHtml(value) {
 	const el = document.createElement('div')
 	el.textContent = value
@@ -25,8 +32,18 @@ function imageSrc(img) {
 	)
 }
 
+function fieldText(item, selector) {
+	return (item.querySelector(selector)?.textContent || '').trim()
+}
+
+function isUrl(value) {
+	return /^https?:\/\//i.test(value)
+}
+
 export function getCreatorFiles() {
-	const items = document.querySelectorAll('.computer-cms .computer-cms__item, [data-computer-file]')
+	const items = document.querySelectorAll(
+		'.creators__cl-item, .computer-cms .computer-cms__item, [data-computer-file]'
+	)
 	const files = []
 
 	items.forEach((item) => {
@@ -34,13 +51,21 @@ export function getCreatorFiles() {
 		const nameEl = item.querySelector('.computer-cms__name, [data-computer-name]')
 		const name = (nameEl?.textContent || img?.getAttribute('alt') || item.getAttribute('data-name') || '').trim()
 		const image = imageSrc(img) || item.getAttribute('data-image') || ''
+		const link = fieldText(item, '.computer-cms__link')
 
 		if (!name && !image) return
 
-		files.push({
+		const file = {
 			name: name || 'untitled',
 			image,
+			link: isUrl(link) ? link : '',
+		}
+
+		profileFields.forEach(({ key, selector }) => {
+			file[key] = fieldText(item, selector)
 		})
+
+		files.push(file)
 	})
 
 	return files.length ? files : fallbackFiles
@@ -61,4 +86,18 @@ export function fileIconHtml(file, index) {
 			<span>${name}</span>
 		</div>
 	`
+}
+
+export function profileFieldsHtml(file) {
+	return profileFields
+		.filter(({ key }) => file[key])
+		.map(
+			({ key, label }) => `
+			<div class="field-row-stacked profile-field">
+				<label>${escapeHtml(label)}</label>
+				<textarea readonly rows="3">${escapeHtml(file[key])}</textarea>
+			</div>
+		`
+		)
+		.join('')
 }
