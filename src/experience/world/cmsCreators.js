@@ -1,3 +1,5 @@
+import barba from '@barba/core'
+
 const fallbackFiles = [
 	{ name: 'lab-cat.jpg', color: '#d4a574' },
 	{ name: 'portrait.png', color: '#e8c9a8' },
@@ -36,13 +38,71 @@ function fieldText(item, selector) {
 	return (item.querySelector(selector)?.textContent || '').trim()
 }
 
-function isUrl(value) {
-	return /^https?:\/\//i.test(value)
+function toAbsoluteUrl(href) {
+	if (!href) return ''
+
+	const value = String(href).trim()
+	if (!value || value === '#') return ''
+
+	try {
+		return new URL(value, window.location.origin).href
+	} catch {
+		return ''
+	}
+}
+
+function pathnameOf(href) {
+	try {
+		return new URL(href, window.location.origin).pathname.replace(/\/+$/, '').toLowerCase() || '/'
+	} catch {
+		return ''
+	}
+}
+
+export function isCurrentPageUrl(href) {
+	return Boolean(href) && pathnameOf(href) === pathnameOf(window.location.href)
+}
+
+export function findCreatorFileForCurrentPage(files) {
+	const path = pathnameOf(window.location.href)
+	const byPage = files.find((file) => file.page && pathnameOf(file.page) === path)
+	if (byPage) return byPage
+
+	const heading = document.querySelector('.creators__name')?.textContent?.trim().toLowerCase()
+	if (!heading) return null
+
+	return files.find((file) => file.name?.trim().toLowerCase() === heading) || null
+}
+
+function elementHref(el) {
+	if (!el) return ''
+
+	return toAbsoluteUrl(el.getAttribute('href') || (el.href && el.href !== window.location.href ? el.href : ''))
+}
+
+function creatorPageUrl(item) {
+	const pageEl = item.querySelector('a.computer-cms__page, .computer-cms__page')
+	const fromPage = elementHref(pageEl)
+	if (fromPage) return fromPage
+
+	const slug = fieldText(item, '.computer-cms__slug')
+	if (!slug) return ''
+
+	const clean = slug.replace(/^\/+|\/+$/g, '')
+	return toAbsoluteUrl(clean.includes('/') ? `/${clean}` : `/creators/${clean}`)
+}
+
+function creatorProjectsUrl(item) {
+	const el = item.querySelector('a.computer-cms__link, .computer-cms__link')
+	if (!el) return ''
+
+	const link = el.matches('a[href]') ? el : el.querySelector('a[href]')
+	return elementHref(link || el) || toAbsoluteUrl(el.textContent)
 }
 
 export function getCreatorFiles() {
 	const items = document.querySelectorAll(
-		'.creators__cl-item, .computer-cms .computer-cms__item, [data-computer-file]'
+		'.creators__data .creators__cl-item, .computer-cms .creators__cl-item, .computer-cms .computer-cms__item, [data-computer-file]'
 	)
 	const files = []
 
@@ -51,14 +111,14 @@ export function getCreatorFiles() {
 		const nameEl = item.querySelector('.computer-cms__name, [data-computer-name]')
 		const name = (nameEl?.textContent || img?.getAttribute('alt') || item.getAttribute('data-name') || '').trim()
 		const image = imageSrc(img) || item.getAttribute('data-image') || ''
-		const link = fieldText(item, '.computer-cms__link')
 
 		if (!name && !image) return
 
 		const file = {
 			name: name || 'untitled',
 			image,
-			link: isUrl(link) ? link : '',
+			link: creatorProjectsUrl(item),
+			page: creatorPageUrl(item),
 		}
 
 		profileFields.forEach(({ key, selector }) => {
@@ -100,4 +160,16 @@ export function profileFieldsHtml(file) {
 		`
 		)
 		.join('')
+}
+
+export function navigateToCreatorPage(url) {
+	if (!url) return false
+
+	if (typeof barba.go === 'function') {
+		barba.go(url)
+		return true
+	}
+
+	window.location.assign(url)
+	return true
 }

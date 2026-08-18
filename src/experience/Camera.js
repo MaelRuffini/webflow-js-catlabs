@@ -36,16 +36,7 @@ export default class Camera {
 			creators: {
 				positionX: -0.23,
 				positionY: 1.389,
-				positionZ: 0.835,
-				rotationX: 0,
-				rotationY: 0,
-				rotationZ: 0,
-				focalLength: 55.2,
-			},
-			creator: {
-				positionX: -0.23,
-				positionY: 1.389,
-				positionZ: 0.835,
+				positionZ: 1.115,
 				rotationX: 0,
 				rotationY: 0,
 				rotationZ: 0,
@@ -147,23 +138,35 @@ export default class Camera {
 		gsap.killTweensOf(this, 'motionScale')
 	}
 
+	viewNameFor(namespace) {
+		return namespace === 'creator' ? 'creators' : namespace
+	}
+
 	motionScaleFor(namespace) {
-		return namespace === 'creators' || namespace === 'creator' ? 0.03125 : 1
+		return this.viewNameFor(namespace) === 'creators' ? 0.03125 : 1
 	}
 
 	goTo(namespace, { immediate = false } = {}) {
-		const view = this.views[namespace] || this.views.home
+		const viewName = this.viewNameFor(namespace)
+		const view = this.views[viewName] || this.views.home
 
 		if (!view) return this.timeline
 
+		const alreadyThere = this.viewNameFor(this.currentNamespace) === viewName
 		this.currentNamespace = namespace
-		this.killTween()
 
 		const targetScale = this.motionScaleFor(namespace)
 
 		if (this.debugParams) {
-			this.debugParams.view = this.views[namespace] ? namespace : 'home'
+			this.debugParams.view = this.views[viewName] ? viewName : 'home'
 		}
+
+		if (alreadyThere && !immediate) {
+			this.motionScale = targetScale
+			return this.timeline
+		}
+
+		this.killTween()
 
 		if (immediate) {
 			this.motionScale = targetScale
@@ -236,8 +239,9 @@ export default class Camera {
 				this.goTo(this.debugParams.view, { immediate: true })
 			},
 			savePose: () => {
-				this.views[this.debugParams.view] = this.getPose()
-				console.log(`[camera] saved ${this.debugParams.view}`, this.views[this.debugParams.view])
+				const key = this.viewNameFor(this.debugParams.view)
+				this.views[key] = this.getPose()
+				console.log(`[camera] saved ${key}`, this.views[key])
 			},
 		}
 

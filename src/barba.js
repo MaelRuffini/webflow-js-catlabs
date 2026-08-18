@@ -191,6 +191,7 @@ export function initBarba(experience) {
 				after(data) {
 					resetWebflow(data)
 					initButtons(findPageContainer(data.next.container) || data.next.container)
+					experience.world?.screen?.syncFromPage()
 					lenis?.resize()
 					ScrollTrigger.refresh()
 				},

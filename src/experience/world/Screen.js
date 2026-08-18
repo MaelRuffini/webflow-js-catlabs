@@ -3,9 +3,18 @@ import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import Experience from '../Experience'
 import { ASSET_BASE } from '../sources'
 import desktopCss from './screenDesktop.css?inline'
-import { fileIconHtml, fileThumb, getCreatorFiles, profileFieldsHtml } from './cmsCreators'
+import {
+	fileIconHtml,
+	fileThumb,
+	findCreatorFileForCurrentPage,
+	getCreatorFiles,
+	isCurrentPageUrl,
+	navigateToCreatorPage,
+	profileFieldsHtml,
+} from './cmsCreators'
 
 const computerBase = `${ASSET_BASE}/computer`
+const DESKTOP_MIN_WIDTH = 992
 
 export default class Screen {
 	constructor(targetMesh) {
@@ -13,6 +22,8 @@ export default class Screen {
 		this.scene = this.experience.scene
 		this.cssScene = this.experience.cssRenderer.scene
 		this.debug = this.experience.debug
+		this.sizes = this.experience.sizes
+		this.cssRenderer = this.experience.cssRenderer
 
 		this.targetMesh = targetMesh
 
@@ -39,6 +50,11 @@ export default class Screen {
 		this.setPage()
 		this.applyTransform()
 		this.setDebug()
+		this.setActive(this.sizes.width >= DESKTOP_MIN_WIDTH)
+
+		this.sizes.on('resize', () => {
+			this.setActive(this.sizes.width >= DESKTOP_MIN_WIDTH)
+		})
 	}
 
 	setAnchor() {
@@ -167,15 +183,22 @@ export default class Screen {
 		})
 		this.profileLink.addEventListener('click', (event) => {
 			event.stopPropagation()
-			if (this.profileLink.dataset.href) {
-				window.open(this.profileLink.dataset.href, '_blank', 'noopener,noreferrer')
-			}
+			this.goToProjectsLink()
 		})
 
 		this.openFolder()
+		this.syncFromPage()
 
 		this.cssObject = new CSS3DObject(this.element)
 		this.cssScene.add(this.cssObject)
+	}
+
+	setActive(active) {
+		this.active = active
+		this.hole.visible = active
+		if (this.cssObject) this.cssObject.visible = active
+		if (this.element) this.element.style.display = active ? '' : 'none'
+		this.cssRenderer.setActive(active)
 	}
 
 	applyPageScale() {
@@ -206,6 +229,7 @@ export default class Screen {
 	}
 
 	update() {
+		if (!this.active) return
 		this.syncPage()
 	}
 
@@ -219,9 +243,18 @@ export default class Screen {
 		this.windowEl.classList.add('is-hidden')
 	}
 
-	openProfile(file) {
+	selectFile(file) {
+		this.clearFileSelection()
+		const index = this.files.indexOf(file)
+		if (index < 0) return
+		this.shadow.querySelector(`.file-icon[data-index="${index}"]`)?.classList.add('is-selected')
+	}
+
+	openProfile(file, { navigate = true } = {}) {
 		if (!file) return
 
+		this.currentFile = file
+		this.selectFile(file)
 		this.profileTitle.textContent = `${file.name} – Creator profile`
 		this.profileName.textContent = file.name
 		this.profileImage.src = file.image || fileThumb(file.color || '#c0c0c0')
@@ -241,10 +274,39 @@ export default class Screen {
 			field.style.height = 'auto'
 			field.style.height = `${field.scrollHeight}px`
 		})
+
+		if (navigate && file.page && !isCurrentPageUrl(file.page)) {
+			this.goToCreatorPage(file)
+		}
+	}
+
+	syncFromPage() {
+		const files = getCreatorFiles()
+		if (files.length) this.files = files
+
+		const file = findCreatorFileForCurrentPage(this.files)
+		if (!file) {
+			this.closeProfile()
+			return
+		}
+
+		this.openFolder()
+		this.openProfile(file, { navigate: false })
 	}
 
 	closeProfile() {
 		this.profileEl.classList.add('is-hidden')
+	}
+
+	goToCreatorPage(file = this.currentFile) {
+		if (!file?.page) return
+		navigateToCreatorPage(file.page)
+	}
+
+	goToProjectsLink(file = this.currentFile) {
+		const url = file?.link
+		if (!url) return
+		window.open(url, '_blank', 'noopener,noreferrer')
 	}
 
 	clearFileSelection() {
