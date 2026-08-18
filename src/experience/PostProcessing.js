@@ -6,6 +6,7 @@ import {
 	EffectPass,
 	NoiseEffect,
 	RenderPass,
+	SelectiveBloomEffect,
 	VignetteEffect,
 } from 'postprocessing'
 import Experience from './Experience'
@@ -29,6 +30,11 @@ export default class PostProcessing {
 			resolutionScale: 0.75,
 			chromaticAberrationEnabled: true,
 			chromaticAberrationOffset: 0.0001,
+			bloomEnabled: true,
+			bloomIntensity: 1.5,
+			bloomThreshold: 0,
+			bloomSmoothing: 0.2,
+			bloomRadius: 0.7,
 		}
 
 		this.setComposer()
@@ -38,7 +44,7 @@ export default class PostProcessing {
 	setComposer() {
 		this.composer = new EffectComposer(this.renderer, {
 			multisampling: 0,
-			stencilBuffer: false,
+			stencilBuffer: true,
 			frameBufferType: THREE.HalfFloatType,
 		})
 
@@ -60,7 +66,18 @@ export default class PostProcessing {
 		})
 		this.noiseEffect.blendMode.opacity.value = this.params.noiseOpacity
 
-		// Chromatic aberration is a convolution effect and cannot share an EffectPass
+		this.bloomEffect = new SelectiveBloomEffect(this.scene, this.camera.instance, {
+			blendFunction: BlendFunction.ADD,
+			mipmapBlur: true,
+			luminanceThreshold: this.params.bloomThreshold,
+			luminanceSmoothing: this.params.bloomSmoothing,
+			intensity: this.params.bloomIntensity,
+			radius: this.params.bloomRadius,
+		})
+		this.bloomEffect.ignoreBackground = true
+
+		// Convolution effects cannot share an EffectPass
+		this.bloomPass = new EffectPass(this.camera.instance, this.bloomEffect)
 		this.chromaticAberrationPass = new EffectPass(
 			this.camera.instance,
 			this.chromaticAberrationEffect
@@ -71,6 +88,7 @@ export default class PostProcessing {
 		this.renderPass.clearPass.overrideClearAlpha = 0
 
 		this.composer.addPass(this.renderPass)
+		this.composer.addPass(this.bloomPass)
 		this.composer.addPass(this.chromaticAberrationPass)
 		this.composer.addPass(this.effectsPass)
 
@@ -79,9 +97,14 @@ export default class PostProcessing {
 	}
 
 	applyEnabledStates() {
+		this.bloomPass.enabled = this.params.bloomEnabled
 		this.chromaticAberrationPass.enabled = this.params.chromaticAberrationEnabled
 		this.vignetteEffect.blendMode.opacity.value = this.params.vignetteEnabled ? 1 : 0
 		this.noiseEffect.blendMode.opacity.value = this.params.noiseEnabled ? this.params.noiseOpacity : 0
+	}
+
+	addBloomObject(object) {
+		this.bloomEffect.selection.add(object)
 	}
 
 	setDebug() {
@@ -89,6 +112,46 @@ export default class PostProcessing {
 
 		this.debugFolder = this.debug.ui.addFolder('post processing')
 		this.debugFolder.close()
+
+		this.debugFolder.add(this.params, 'bloomEnabled').name('bloom').onChange(() => {
+			this.applyEnabledStates()
+		})
+		this.debugFolder
+			.add(this.params, 'bloomIntensity')
+			.min(0)
+			.max(8)
+			.step(0.1)
+			.name('bloom intensity')
+			.onChange((value) => {
+				this.bloomEffect.intensity = value
+			})
+		this.debugFolder
+			.add(this.params, 'bloomThreshold')
+			.min(0)
+			.max(1)
+			.step(0.01)
+			.name('bloom threshold')
+			.onChange((value) => {
+				this.bloomEffect.luminanceMaterial.threshold = value
+			})
+		this.debugFolder
+			.add(this.params, 'bloomSmoothing')
+			.min(0)
+			.max(1)
+			.step(0.01)
+			.name('bloom smoothing')
+			.onChange((value) => {
+				this.bloomEffect.luminanceMaterial.smoothing = value
+			})
+		this.debugFolder
+			.add(this.params, 'bloomRadius')
+			.min(0)
+			.max(1)
+			.step(0.01)
+			.name('bloom radius')
+			.onChange((value) => {
+				this.bloomEffect.mipmapBlurPass.radius = value
+			})
 
 		this.debugFolder.add(this.params, 'vignetteEnabled').name('vignette').onChange(() => {
 			this.applyEnabledStates()

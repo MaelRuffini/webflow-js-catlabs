@@ -35,6 +35,7 @@ export default class Environment {
 		this.environmentMap.colorSpace = THREE.SRGBColorSpace
 
 		this.scene.background = this.environmentMap
+		this.scene.environment = this.environmentMap
 		this.scene.backgroundIntensity = this.params.backgroundIntensity
 	}
 

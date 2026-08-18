@@ -1,6 +1,7 @@
 import Experience from '../Experience'
 import Environment from './Environment'
 import BakedModel from './BakedModel'
+import OthersModel from './OthersModel'
 import ScreenSpaceReflector from './ScreenSpaceReflector'
 import Screen from './Screen'
 
@@ -17,11 +18,12 @@ export default class World {
 			this.wood = new BakedModel('woodModel', 'bakedWoods')
 			this.lightBis = new BakedModel('lightBisModel', 'bakedLightBis')
 			this.floor = new BakedModel('floorModel', 'bakedFloor')
+			this.others = new OthersModel()
 			this.environment = new Environment()
 
-			if (this.walls.meshes.floor) {
-				this.floor = new ScreenSpaceReflector(this.walls.meshes.floor, {
-					texture: this.walls.texture,
+			if (this.floor.meshes.floor) {
+				this.floorReflector = new ScreenSpaceReflector(this.floor.meshes.floor, {
+					texture: this.floor.texture,
 				})
 			}
 
@@ -32,8 +34,8 @@ export default class World {
 	}
 
 	update() {
-		if (this.floor) {
-			this.floor.update()
+		if (this.floorReflector) {
+			this.floorReflector.update()
 		}
 
 		if (this.environment) {
