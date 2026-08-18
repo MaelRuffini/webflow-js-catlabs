@@ -10,10 +10,10 @@ export default class World {
 		this.resources = this.experience.resources
 
 		this.resources.on('ready', () => {
-			this.dark = new BakedModel('darkModel', 'bakedDark')
-			this.light = new BakedModel('lightModel', 'bakedLight')
-			this.walls = new BakedModel('wallsModel', 'bakedWalls')
-			this.wood = new BakedModel('woodModel', 'bakedWoods')
+			// this.dark = new BakedModel('darkModel', 'bakedDark')
+			// this.light = new BakedModel('lightModel', 'bakedLight')
+			// this.walls = new BakedModel('wallsModel', 'bakedWalls')
+			// this.wood = new BakedModel('woodModel', 'bakedWoods')
 			this.environment = new Environment()
 
 			if (this.walls.meshes.floor) {
@@ -27,6 +27,10 @@ export default class World {
 	update() {
 		if (this.floor) {
 			this.floor.update()
+		}
+
+		if (this.environment) {
+			this.environment.update()
 		}
 	}
 }

@@ -41,4 +41,16 @@ export default [
 		type: 'texture',
 		path: `${ASSET_BASE}/textures/bakedWoods.jpg`,
 	},
+	{
+		name: 'environmentMap',
+		type: 'cubeTexture',
+		path: [
+			`${ASSET_BASE}/environment/px.png`,
+			`${ASSET_BASE}/environment/nx.png`,
+			`${ASSET_BASE}/environment/py.png`,
+			`${ASSET_BASE}/environment/ny.png`,
+			`${ASSET_BASE}/environment/pz.png`,
+			`${ASSET_BASE}/environment/nz.png`,
+		],
+	},
 ]
