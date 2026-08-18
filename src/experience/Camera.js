@@ -22,6 +22,7 @@ export default class Camera {
 		this.mouse = { x: 0, y: 0 }
 		this.targetX = 0
 		this.targetY = 0
+		this.followEnabled = true
 
 		this.setInstance()
 		this.setMouse()
@@ -76,9 +77,9 @@ export default class Camera {
 		this.debugFolder = this.debug.ui.addFolder('camera')
 		this.debugFolder.close()
 
-		this.debugFolder.add(this.rig.position, 'x').min(-50).max(50).step(0.01).name('positionX')
-		this.debugFolder.add(this.rig.position, 'y').min(-50).max(50).step(0.01).name('positionY')
-		this.debugFolder.add(this.rig.position, 'z').min(-50).max(50).step(0.01).name('positionZ')
+		this.debugFolder.add(this.rig.position, 'x').min(-20).max(20).step(0.001).name('positionX')
+		this.debugFolder.add(this.rig.position, 'y').min(-20).max(20).step(0.001).name('positionY')
+		this.debugFolder.add(this.rig.position, 'z').min(-20).max(20).step(0.001).name('positionZ')
 
 		this.debugFolder.add(this.baseRotationX.rotation, 'x').min(-Math.PI).max(Math.PI).step(0.01).name('rotationX')
 		this.debugFolder.add(this.baseRotationY.rotation, 'y').min(-Math.PI).max(Math.PI).step(0.01).name('rotationY')
@@ -125,6 +126,11 @@ export default class Camera {
 	}
 
 	update() {
+		if (!this.followEnabled) {
+			this.rig.updateMatrixWorld(true)
+			return
+		}
+
 		const rawTargetX = this.mouse.x * 0.0001
 		const rawTargetY = this.mouse.y * 0.00015
 

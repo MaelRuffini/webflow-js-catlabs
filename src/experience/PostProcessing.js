@@ -67,7 +67,10 @@ export default class PostProcessing {
 		)
 		this.effectsPass = new EffectPass(this.camera.instance, this.vignetteEffect, this.noiseEffect)
 
-		this.composer.addPass(new RenderPass(this.scene, this.camera.instance))
+		this.renderPass = new RenderPass(this.scene, this.camera.instance)
+		this.renderPass.clearPass.overrideClearAlpha = 0
+
+		this.composer.addPass(this.renderPass)
 		this.composer.addPass(this.chromaticAberrationPass)
 		this.composer.addPass(this.effectsPass)
 

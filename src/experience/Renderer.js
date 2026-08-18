@@ -18,12 +18,11 @@ export default class Renderer {
 			antialias: true,
 			alpha: true,
 		})
-		this.instance.physicallyCorrectLights = true
-		this.instance.toneMapping = THREE.CineonToneMapping
-		this.instance.toneMappingExposure = 1.75
+		this.instance.outputColorSpace = THREE.SRGBColorSpace
+		this.instance.toneMapping = THREE.NoToneMapping
 		this.instance.shadowMap.enabled = true
 		this.instance.shadowMap.type = THREE.PCFSoftShadowMap
-		// this.instance.setClearColor('#211d20')
+		this.instance.setClearColor(0x000000, 0)
 		this.instance.setSize(this.sizes.width, this.sizes.height)
 		this.instance.setPixelRatio(this.sizes.pixelRatio)
 	}

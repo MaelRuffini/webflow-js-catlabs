@@ -1,3 +1,101 @@
+.webgl__wrapper {
+  position: relative;
+}
+
+.webgl {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.css3d {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.screen-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #f4f1ea;
+  background: #161412;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  pointer-events: auto;
+  backface-visibility: hidden;
+}
+
+.screen-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 36px;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  background: #201c19;
+}
+
+.screen-page__live {
+  color: #7dffb3;
+  font-size: 16px;
+}
+
+.screen-page__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  padding: 40px 48px;
+}
+
+.screen-page__title {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 600;
+}
+
+.screen-page__input,
+.screen-page__button {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 28px;
+}
+
+.screen-page__input {
+  padding: 18px 20px;
+  color: #f4f1ea;
+  background: #2a2521;
+  border: 2px solid #4a433c;
+  outline: none;
+}
+
+.screen-page__input:focus {
+  border-color: #7dffb3;
+}
+
+.screen-page__button {
+  padding: 18px 20px;
+  color: #161412;
+  background: #7dffb3;
+  border: none;
+  cursor: pointer;
+}
+
+.screen-page__button:hover {
+  background: #b6ffd6;
+}
+
+.screen-page__status {
+  margin: 0;
+  color: #b7b0a6;
+  font-size: 22px;
+}
+
 .webgl__wrapper:after {
   content: '';
   position: absolute;
@@ -6,6 +104,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(to top, #000000, rgba(0, 0, 0, 0));
-  z-index: 1;
-  opacity: 0;
+  z-index: 2;
+  opacity: 0.35;
+  pointer-events: none;
 }

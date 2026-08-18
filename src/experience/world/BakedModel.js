@@ -18,6 +18,11 @@ export default class BakedModel {
 	setTexture() {
 		this.texture.flipY = false
 		this.texture.colorSpace = THREE.SRGBColorSpace
+		this.texture.generateMipmaps = false
+		this.texture.minFilter = THREE.LinearFilter
+		this.texture.magFilter = THREE.LinearFilter
+		this.texture.wrapS = THREE.ClampToEdgeWrapping
+		this.texture.wrapT = THREE.ClampToEdgeWrapping
 	}
 
 	setMaterial() {

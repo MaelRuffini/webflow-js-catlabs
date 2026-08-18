@@ -3,6 +3,7 @@ import Sizes from './utils/Sizes'
 import Time from './utils/Time'
 import Camera from './Camera'
 import Renderer from './Renderer'
+import CssRenderer from './CssRenderer'
 import PostProcessing from './PostProcessing'
 import World from './world/World'
 import sources from './sources'
@@ -32,6 +33,7 @@ export default class Experience {
 		this.resources = new Resources(sources)
 		this.camera = new Camera()
 		this.renderer = new Renderer()
+		this.cssRenderer = new CssRenderer()
 		this.postProcessing = new PostProcessing()
 		this.world = new World()
 
@@ -49,6 +51,7 @@ export default class Experience {
 	resize() {
 		this.camera.resize()
 		this.renderer.resize()
+		this.cssRenderer.resize()
 		this.postProcessing.resize()
 	}
 
@@ -56,12 +59,14 @@ export default class Experience {
 		this.camera.update()
 		this.world.update()
 		this.postProcessing.update()
+		this.cssRenderer.update()
 	}
 
 	destroy() {
 		this.sizes.destroy()
 		this.time.destroy()
 		this.camera.destroy()
+		this.cssRenderer.destroy()
 		this.postProcessing.dispose()
 
 		// Traverse the whole scene
