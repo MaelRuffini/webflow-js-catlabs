@@ -207,7 +207,6 @@
 .profile-fields {
   flex: 1;
   min-height: 0;
-  max-height: 210px;
   overflow: auto;
   padding: 8px;
   background: #c0c0c0;
@@ -222,8 +221,16 @@
   width: 100%;
 }
 
+.profile-field label {
+  color: #000;
+}
+
 .profile-field textarea {
   width: 100%;
   box-sizing: border-box;
+  min-height: 5.5em;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
   resize: none;
 }

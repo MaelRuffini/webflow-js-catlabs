@@ -237,6 +237,10 @@ export default class Screen {
 		}
 
 		this.profileEl.classList.remove('is-hidden')
+		this.profileFields.querySelectorAll('textarea').forEach((field) => {
+			field.style.height = 'auto'
+			field.style.height = `${field.scrollHeight}px`
+		})
 	}
 
 	closeProfile() {
