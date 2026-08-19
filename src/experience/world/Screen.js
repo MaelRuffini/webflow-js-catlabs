@@ -186,6 +186,28 @@ export default class Screen {
 			this.goToProjectsLink()
 		})
 
+		this.profileInfo = this.shadow.querySelector('.profile-info')
+		this.profileInfo.addEventListener(
+			'wheel',
+			(event) => {
+				const scroller = this.profileFields
+				if (!scroller || scroller.scrollHeight <= scroller.clientHeight) return
+
+				event.preventDefault()
+				event.stopPropagation()
+
+				const delta =
+					event.deltaMode === 1
+						? event.deltaY * 16
+						: event.deltaMode === 2
+							? event.deltaY * scroller.clientHeight
+							: event.deltaY
+
+				scroller.scrollTop += delta
+			},
+			{ capture: true, passive: false }
+		)
+
 		this.openFolder()
 		this.syncFromPage()
 
@@ -270,10 +292,12 @@ export default class Screen {
 		}
 
 		this.profileEl.classList.remove('is-hidden')
+		this.profileFields.scrollTop = 0
 		this.profileFields.querySelectorAll('textarea').forEach((field) => {
 			field.style.height = 'auto'
 			field.style.height = `${field.scrollHeight}px`
 		})
+		this.profileFields.scrollTop = 0
 
 		if (navigate && file.page && !isCurrentPageUrl(file.page)) {
 			this.goToCreatorPage(file)
@@ -295,6 +319,7 @@ export default class Screen {
 	}
 
 	closeProfile() {
+		this.profileFields.scrollTop = 0
 		this.profileEl.classList.add('is-hidden')
 	}
 
