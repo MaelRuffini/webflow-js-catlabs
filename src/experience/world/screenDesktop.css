@@ -217,11 +217,11 @@
   display: none;
 }
 
-.profile-fields {
+.profile-fields-wrap {
   flex: 1;
   min-height: 0;
+  display: flex;
   overflow: hidden;
-  padding: 8px;
   background: #c0c0c0;
   box-shadow:
     inset -1px -1px #fff,
@@ -230,8 +230,87 @@
     inset 2px 2px #0a0a0a;
 }
 
+.profile-fields {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px;
+}
+
 .profile-fields-content {
   position: relative;
+}
+
+.profile-scrollbar {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  width: 16px;
+  background: #c0c0c0;
+  box-shadow: inset 1px 0 #808080;
+}
+
+.profile-scrollbar__btn {
+  box-sizing: border-box;
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  background: #c0c0c0;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #fff,
+    inset -2px -2px #808080,
+    inset 2px 2px #dfdfdf;
+}
+
+.profile-scrollbar__btn::before {
+  content: '';
+  display: block;
+  margin: 0 auto;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.profile-scrollbar__btn[data-scroll-dir="-1"]::before {
+  border-bottom: 5px solid #000;
+}
+
+.profile-scrollbar__btn[data-scroll-dir="1"]::before {
+  border-top: 5px solid #000;
+}
+
+.profile-scrollbar__track {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #dfdfdf;
+}
+
+.profile-scrollbar__thumb {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  min-height: 24px;
+  background: #c0c0c0;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #fff,
+    inset -2px -2px #808080,
+    inset 2px 2px #dfdfdf;
+}
+
+.profile-scrollbar.is-disabled .profile-scrollbar__thumb {
+  display: none;
+}
+
+.profile-scrollbar.is-disabled .profile-scrollbar__btn::before {
+  border-bottom-color: #808080;
+  border-top-color: #808080;
 }
 
 .profile-field {

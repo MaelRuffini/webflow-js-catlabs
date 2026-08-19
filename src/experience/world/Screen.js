@@ -133,7 +133,16 @@ export default class Screen {
 							<button type="button" class="profile-projects is-hidden" data-profile-link>
 								See Projects
 							</button>
-							<div class="profile-fields" data-profile-fields></div>
+							<div class="profile-fields-wrap">
+								<div class="profile-fields" data-profile-fields></div>
+								<div class="profile-scrollbar" data-profile-scrollbar>
+									<button type="button" class="profile-scrollbar__btn" data-scroll-dir="-1" aria-label="Scroll up"></button>
+									<div class="profile-scrollbar__track" data-profile-scroll-track>
+										<div class="profile-scrollbar__thumb" data-profile-scroll-thumb></div>
+									</div>
+									<button type="button" class="profile-scrollbar__btn" data-scroll-dir="1" aria-label="Scroll down"></button>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -148,6 +157,9 @@ export default class Screen {
 		this.profileName = this.shadow.querySelector('[data-profile-name]')
 		this.profileImage = this.shadow.querySelector('[data-profile-image]')
 		this.profileFields = this.shadow.querySelector('[data-profile-fields]')
+		this.profileScrollbar = this.shadow.querySelector('[data-profile-scrollbar]')
+		this.profileScrollTrack = this.shadow.querySelector('[data-profile-scroll-track]')
+		this.profileScrollThumb = this.shadow.querySelector('[data-profile-scroll-thumb]')
 		this.profileLink = this.shadow.querySelector('[data-profile-link]')
 
 		this.folder.addEventListener('click', (event) => {
@@ -198,6 +210,7 @@ export default class Screen {
 			},
 			{ capture: true, passive: false }
 		)
+		this.bindProfileScrollbar()
 
 		this.openFolder()
 		this.syncFromPage()
@@ -303,8 +316,7 @@ export default class Screen {
 		})
 		this.profileScrollY = 0
 		this.applyProfileScroll()
-
-		if (navigate && file.page && !isCurrentPageUrl(file.page)) {
+		requestAnimationFrame(() => this.applyProfileScroll())
 			this.goToCreatorPage(file)
 		}
 	}
@@ -321,14 +333,89 @@ export default class Screen {
 		this.applyProfileScroll()
 	}
 
+	profileScrollMax() {
+		const content = this.profileFieldsContent
+		const viewport = this.profileFields
+		if (!content || !viewport) return 0
+		return Math.max(0, content.offsetHeight - viewport.clientHeight)
+	}
+
+	bindProfileScrollbar() {
+		this.shadow.querySelectorAll('[data-scroll-dir]').forEach((button) => {
+			button.addEventListener('click', (event) => {
+				event.preventDefault()
+				event.stopPropagation()
+				this.profileScrollY += Number(button.dataset.scrollDir) * 48
+				this.applyProfileScroll()
+			})
+		})
+
+		this.profileScrollTrack.addEventListener('pointerdown', (event) => {
+			if (event.target === this.profileScrollThumb) return
+			event.preventDefault()
+			event.stopPropagation()
+
+			const max = this.profileScrollMax()
+			if (!max) return
+
+			const rect = this.profileScrollTrack.getBoundingClientRect()
+			const ratio = (event.clientY - rect.top) / rect.height
+			this.profileScrollY = ratio * max
+			this.applyProfileScroll()
+		})
+
+		this.profileScrollThumb.addEventListener('pointerdown', (event) => {
+			event.preventDefault()
+			event.stopPropagation()
+			this.profileScrollThumb.setPointerCapture(event.pointerId)
+			this.profileDragging = {
+				startY: event.clientY,
+				startScroll: this.profileScrollY,
+			}
+		})
+
+		this.profileScrollThumb.addEventListener('pointermove', (event) => {
+			if (!this.profileDragging) return
+
+			const max = this.profileScrollMax()
+			const trackSize = this.profileScrollTrack.clientHeight
+			const thumbSize = this.profileScrollThumb.offsetHeight
+			const thumbTravel = Math.max(1, trackSize - thumbSize)
+			const dy = event.clientY - this.profileDragging.startY
+			this.profileScrollY = this.profileDragging.startScroll + (dy / thumbTravel) * max
+			this.applyProfileScroll()
+		})
+
+		const endDrag = () => {
+			this.profileDragging = null
+		}
+
+		this.profileScrollThumb.addEventListener('pointerup', endDrag)
+		this.profileScrollThumb.addEventListener('pointercancel', endDrag)
+	}
+
 	applyProfileScroll() {
 		const content = this.profileFieldsContent
 		const viewport = this.profileFields
 		if (!content || !viewport) return
 
-		const max = Math.max(0, content.offsetHeight - viewport.clientHeight)
+		const max = this.profileScrollMax()
 		this.profileScrollY = Math.min(max, Math.max(0, this.profileScrollY))
 		content.style.top = `${-this.profileScrollY}px`
+
+		const track = this.profileScrollTrack
+		const thumb = this.profileScrollThumb
+		if (!track || !thumb) return
+
+		this.profileScrollbar.classList.toggle('is-disabled', max <= 0)
+
+		const trackSize = track.clientHeight
+		const thumbSize = max <= 0 ? trackSize : Math.max(24, (viewport.clientHeight / content.offsetHeight) * trackSize)
+		const thumbTravel = Math.max(0, trackSize - thumbSize)
+		const thumbTop = max > 0 ? (this.profileScrollY / max) * thumbTravel : 0
+
+		thumb.style.height = `${thumbSize}px`
+		thumb.style.top = `${thumbTop}px`
 	}
 
 	syncFromPage() {
