@@ -254,12 +254,16 @@
 
 .profile-scrollbar__btn {
   box-sizing: border-box;
+  display: grid;
+  place-items: center;
   width: 16px;
   min-width: 16px;
   height: 16px;
   min-height: 16px;
   margin: 0;
   padding: 0;
+  font-size: 0;
+  line-height: 0;
   background: #c0c0c0;
   box-shadow:
     inset -1px -1px #0a0a0a,
@@ -270,18 +274,18 @@
 
 .profile-scrollbar__btn::before {
   content: '';
-  display: block;
-  margin: 0 auto;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
+  width: 7px;
+  height: 4px;
+  background: #000;
+  image-rendering: pixelated;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%23000' d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/%3E%3C/svg%3E")
+    center / 7px 4px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath fill='%23000' d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z'/%3E%3C/svg%3E")
+    center / 7px 4px no-repeat;
 }
 
-.profile-scrollbar__btn[data-scroll-dir="-1"]::before {
-  border-bottom: 5px solid #000;
-}
-
-.profile-scrollbar__btn[data-scroll-dir="1"]::before {
-  border-top: 5px solid #000;
+.profile-scrollbar__btn[data-scroll-dir='1']::before {
+  transform: scaleY(-1);
 }
 
 .profile-scrollbar__track {
@@ -309,8 +313,7 @@
 }
 
 .profile-scrollbar.is-disabled .profile-scrollbar__btn::before {
-  border-bottom-color: #808080;
-  border-top-color: #808080;
+  background: #808080;
 }
 
 .profile-field {
@@ -322,6 +325,10 @@ label,
 .profile-projects,
 .profile-field label {
   font-size: 14px;
+}
+
+.profile-scrollbar__btn {
+  font-size: 0;
 }
 
 .profile-field label {
