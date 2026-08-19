@@ -41,6 +41,10 @@
   height: 100%;
 }
 
+body.disable-scroll {
+  overflow: hidden;
+}
+
 .webgl__wrapper:after {
   content: '';
   position: absolute;

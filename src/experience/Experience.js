@@ -9,6 +9,7 @@ import World from './world/World'
 import sources from './sources'
 import Debug from './utils/Debug'
 import Resources from './utils/Resources'
+import Loader from './utils/Loader'
 
 let instance = null
 
@@ -31,6 +32,7 @@ export default class Experience {
 		this.time = new Time()
 		this.scene = new THREE.Scene()
 		this.resources = new Resources(sources)
+		this.loader = new Loader(this.resources)
 		this.camera = new Camera()
 		this.renderer = new Renderer()
 		this.cssRenderer = new CssRenderer()

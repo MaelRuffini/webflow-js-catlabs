@@ -24,5 +24,9 @@ export function initLenis() {
 	gsap.ticker.add(onTick)
 	gsap.ticker.lagSmoothing(0)
 
+	if (!window.experience?.resources?.ready) {
+		lenis.stop()
+	}
+
 	return lenis
 }
