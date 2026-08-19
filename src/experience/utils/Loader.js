@@ -4,7 +4,7 @@ import { lenis } from '../../lenis.js'
 export default class Loader {
 	constructor(resources) {
 		this.resources = resources
-		this.element = document.querySelector('.loader')
+		this.element = document.querySelector('.loader__wrapper')
 		this.progressElement = document.querySelector('.loader__progress')
 		this.body = document.body
 
@@ -47,7 +47,7 @@ export default class Loader {
 		gsap.to(this.element, {
 			opacity: 0,
 			duration: 0.8,
-			ease: 'power2.inOut',
+			ease: 'power3.inOut',
 			onComplete: reveal,
 		})
 	}
