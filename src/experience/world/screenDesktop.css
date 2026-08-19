@@ -220,10 +220,7 @@
 .profile-fields {
   flex: 1;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  overflow: hidden;
   padding: 8px;
   background: #c0c0c0;
   box-shadow:
@@ -231,6 +228,10 @@
     inset 1px 1px #808080,
     inset -2px -2px #dfdfdf,
     inset 2px 2px #0a0a0a;
+}
+
+.profile-fields-content {
+  position: relative;
 }
 
 .profile-field {

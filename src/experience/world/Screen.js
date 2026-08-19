@@ -81,6 +81,7 @@ export default class Screen {
 
 		this.element = document.createElement('div')
 		this.element.className = 'screen-page'
+		this.element.setAttribute('data-lenis-prevent', '')
 		this.element.style.backgroundImage = `url(${computerBase}/background.jpg)`
 
 		this.shadow = this.element.attachShadow({ mode: 'open' })
@@ -187,23 +188,13 @@ export default class Screen {
 		})
 
 		this.profileInfo = this.shadow.querySelector('.profile-info')
+		this.profileScrollY = 0
 		this.profileInfo.addEventListener(
 			'wheel',
 			(event) => {
-				const scroller = this.profileFields
-				if (!scroller || scroller.scrollHeight <= scroller.clientHeight) return
-
 				event.preventDefault()
 				event.stopPropagation()
-
-				const delta =
-					event.deltaMode === 1
-						? event.deltaY * 16
-						: event.deltaMode === 2
-							? event.deltaY * scroller.clientHeight
-							: event.deltaY
-
-				scroller.scrollTop += delta
+				this.scrollProfile(event)
 			},
 			{ capture: true, passive: false }
 		)
@@ -275,13 +266,27 @@ export default class Screen {
 	openProfile(file, { navigate = true } = {}) {
 		if (!file) return
 
+		const alreadyOpen =
+			this.currentFile &&
+			!this.profileEl.classList.contains('is-hidden') &&
+			this.currentFile.name === file.name &&
+			this.currentFile.page === file.page
+
+		if (alreadyOpen) {
+			if (navigate && file.page && !isCurrentPageUrl(file.page)) {
+				this.goToCreatorPage(file)
+			}
+			return
+		}
+
 		this.currentFile = file
 		this.selectFile(file)
 		this.profileTitle.textContent = `${file.name} – Creator profile`
 		this.profileName.textContent = file.name
 		this.profileImage.src = file.image || fileThumb(file.color || '#c0c0c0')
 		this.profileImage.alt = file.name
-		this.profileFields.innerHTML = profileFieldsHtml(file)
+		this.profileFields.innerHTML = `<div class="profile-fields-content">${profileFieldsHtml(file)}</div>`
+		this.profileFieldsContent = this.profileFields.querySelector('.profile-fields-content')
 
 		if (file.link) {
 			this.profileLink.dataset.href = file.link
@@ -292,16 +297,38 @@ export default class Screen {
 		}
 
 		this.profileEl.classList.remove('is-hidden')
-		this.profileFields.scrollTop = 0
 		this.profileFields.querySelectorAll('textarea').forEach((field) => {
 			field.style.height = 'auto'
 			field.style.height = `${field.scrollHeight}px`
 		})
-		this.profileFields.scrollTop = 0
+		this.profileScrollY = 0
+		this.applyProfileScroll()
 
 		if (navigate && file.page && !isCurrentPageUrl(file.page)) {
 			this.goToCreatorPage(file)
 		}
+	}
+
+	scrollProfile(event) {
+		const delta =
+			event.deltaMode === 1
+				? event.deltaY * 16
+				: event.deltaMode === 2
+					? event.deltaY * (this.profileFields?.clientHeight || 0)
+					: event.deltaY
+
+		this.profileScrollY += delta
+		this.applyProfileScroll()
+	}
+
+	applyProfileScroll() {
+		const content = this.profileFieldsContent
+		const viewport = this.profileFields
+		if (!content || !viewport) return
+
+		const max = Math.max(0, content.offsetHeight - viewport.clientHeight)
+		this.profileScrollY = Math.min(max, Math.max(0, this.profileScrollY))
+		content.style.top = `${-this.profileScrollY}px`
 	}
 
 	syncFromPage() {
@@ -319,7 +346,8 @@ export default class Screen {
 	}
 
 	closeProfile() {
-		this.profileFields.scrollTop = 0
+		this.profileScrollY = 0
+		this.applyProfileScroll()
 		this.profileEl.classList.add('is-hidden')
 	}
 

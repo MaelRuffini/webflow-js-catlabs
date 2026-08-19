@@ -18,6 +18,7 @@ export function initLenis() {
 		autoRaf: false,
 		anchors: true,
 		stopInertiaOnNavigate: true,
+		prevent: (node) => Boolean(node.closest?.('.screen-page, .css3d, [data-lenis-prevent]')),
 	})
 
 	lenis.on('scroll', ScrollTrigger.update)
