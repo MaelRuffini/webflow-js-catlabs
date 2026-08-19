@@ -317,6 +317,8 @@ export default class Screen {
 		this.profileScrollY = 0
 		this.applyProfileScroll()
 		requestAnimationFrame(() => this.applyProfileScroll())
+
+		if (navigate && file.page && !isCurrentPageUrl(file.page)) {
 			this.goToCreatorPage(file)
 		}
 	}
