@@ -6,6 +6,7 @@ import { initButtons } from './button.js'
 
 const FADE_DURATION = 0.6
 const PAGE_CONTAINER = 'main[data-barba="container"]'
+const CONTACT_SECTION = '.section--contact'
 
 function findPageContainer(scope) {
 	const root = scope || document
@@ -13,6 +14,46 @@ function findPageContainer(scope) {
 	if (root.nodeType === 1 && root.matches?.(PAGE_CONTAINER)) return root
 
 	return root.querySelector?.(PAGE_CONTAINER) || null
+}
+
+function getContactSection() {
+	return document.querySelector(CONTACT_SECTION)
+}
+
+function isContactNamespace(namespace) {
+	return namespace === 'contact'
+}
+
+function setContactVisible(visible, { opacity } = {}) {
+	const contact = getContactSection()
+	if (!contact) return
+
+	gsap.killTweensOf(contact)
+
+	if (visible) {
+		gsap.set(contact, { display: 'block', opacity: opacity ?? 1 })
+		return
+	}
+
+	gsap.set(contact, { display: 'none', opacity: 0 })
+}
+
+function getFadeTargets(container, namespace) {
+	const targets = container ? [container] : []
+
+	if (isContactNamespace(namespace)) {
+		const contact = getContactSection()
+		if (contact) targets.push(contact)
+	}
+
+	return targets
+}
+
+function readTransitionNamespace(side) {
+	if (!side) return null
+	if (side.namespace && side.namespace !== 'tmp') return side.namespace
+
+	return readNamespace(side.container) || namespaceFromUrl(side.url?.href)
 }
 
 function readNamespace(root) {
@@ -148,12 +189,23 @@ export function initBarba(experience) {
 		transitions: [
 			{
 				name: 'opacity-transition',
+				once(data) {
+					const namespace = resolveNamespace(data)
+					setContactVisible(isContactNamespace(namespace))
+					document.body.classList.toggle('body--contact', isContactNamespace(namespace))
+				},
 				leave(data) {
 					const container = findPageContainer(data.current.container) || data.current.container
+					const currentNamespace = readTransitionNamespace(data.current)
 					experience.camera.goTo(resolveNamespace(data))
 
+					if (isContactNamespace(currentNamespace)) {
+						document.body.classList.remove('body--contact')
+						setContactVisible(true, { opacity: 1 })
+					}
+
 					return new Promise((resolve) => {
-						gsap.to(container, {
+						gsap.to(getFadeTargets(container, currentNamespace), {
 							opacity: 0,
 							duration: FADE_DURATION,
 							ease: 'power2.in',
@@ -162,16 +214,27 @@ export function initBarba(experience) {
 					})
 				},
 				afterLeave({ current }) {
+					if (isContactNamespace(readTransitionNamespace(current))) {
+						setContactVisible(false)
+					}
+
 					current.container.remove()
+				},
+				beforeEnter(data) {
+					const namespace = resolveNamespace(data)
+					const container = findPageContainer(data.next.container) || data.next.container
+
+					gsap.set(container, { opacity: 0 })
+					setContactVisible(isContactNamespace(namespace), { opacity: 0 })
 				},
 				enter(data) {
 					const container = findPageContainer(data.next.container) || data.next.container
+					const namespace = resolveNamespace(data)
 					lenis?.scrollTo(0, { immediate: true })
-					gsap.set(container, { opacity: 0 })
 
 					return new Promise((resolve) => {
 						const fadeIn = () => {
-							gsap.to(container, {
+							gsap.to(getFadeTargets(container, namespace), {
 								opacity: 1,
 								duration: FADE_DURATION,
 								ease: 'power2.out',
@@ -189,7 +252,9 @@ export function initBarba(experience) {
 					})
 				},
 				after(data) {
+					const namespace = resolveNamespace(data)
 					resetWebflow(data)
+					document.body.classList.toggle('body--contact', isContactNamespace(namespace))
 					initButtons(findPageContainer(data.next.container) || data.next.container)
 					experience.world?.screen?.syncFromPage()
 					lenis?.resize()
