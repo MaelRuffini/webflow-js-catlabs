@@ -45,10 +45,10 @@ export default class Screen {
 			width: 0.353,
 			height: 0.279,
 			offset: 0.002,
-			fallbackScale: 1.05,
+			fallbackScale: 1,
 			fallbackColor: '#07090d',
 			fallbackEmissive: '#b7dcff',
-			fallbackEmissiveIntensity: 1.6,
+			fallbackEmissiveIntensity: 0.45,
 			fallbackRoughness: 0.28,
 		}
 
