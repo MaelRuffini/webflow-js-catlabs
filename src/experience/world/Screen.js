@@ -17,7 +17,7 @@ const computerBase = `${ASSET_BASE}/computer`
 const DESKTOP_MIN_WIDTH = 992
 
 export default class Screen {
-	constructor(targetMesh) {
+	constructor(targetMesh, fallbackModel = null) {
 		this.experience = new Experience()
 		this.scene = this.experience.scene
 		this.cssScene = this.experience.cssRenderer.scene
@@ -26,6 +26,7 @@ export default class Screen {
 		this.cssRenderer = this.experience.cssRenderer
 
 		this.targetMesh = targetMesh
+		this.fallbackModel = fallbackModel
 
 		this.pageWidth = 800
 
@@ -224,6 +225,7 @@ export default class Screen {
 		this.hole.visible = active
 		if (this.cssObject) this.cssObject.visible = active
 		if (this.element) this.element.style.display = active ? '' : 'none'
+		if (this.fallbackModel) this.fallbackModel.visible = !active
 		this.cssRenderer.setActive(active)
 	}
 

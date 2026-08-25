@@ -37,6 +37,11 @@ export default [
 		path: `${ASSET_BASE}/models/others.glb`,
 	},
 	{
+		name: 'screenModel',
+		type: 'gltfModel',
+		path: `${import.meta.env.DEV ? 'http://localhost:3000' : ASSET_BASE}/models/screen.glb`,
+	},
+	{
 		name: 'bakedDark',
 		type: 'texture',
 		path: `${ASSET_BASE}/textures/bakedDark.jpg`,
