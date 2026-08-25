@@ -24,6 +24,7 @@ export default class Screen {
 		this.debug = this.experience.debug
 		this.sizes = this.experience.sizes
 		this.cssRenderer = this.experience.cssRenderer
+		this.postProcessing = this.experience.postProcessing
 
 		this.targetMesh = targetMesh
 		this.fallbackModel = fallbackModel
@@ -44,11 +45,17 @@ export default class Screen {
 			width: 0.353,
 			height: 0.279,
 			offset: 0.002,
+			fallbackScale: 1.05,
+			fallbackColor: '#07090d',
+			fallbackEmissive: '#b7dcff',
+			fallbackEmissiveIntensity: 1.6,
+			fallbackRoughness: 0.28,
 		}
 
 		this.setAnchor()
 		this.setHole()
 		this.setPage()
+		this.setFallback()
 		this.applyTransform()
 		this.setDebug()
 		this.setActive(this.sizes.width >= DESKTOP_MIN_WIDTH)
@@ -218,6 +225,37 @@ export default class Screen {
 
 		this.cssObject = new CSS3DObject(this.element)
 		this.cssScene.add(this.cssObject)
+	}
+
+	setFallback() {
+		if (!this.fallbackModel) return
+
+		this.fallbackMaterial = new THREE.MeshStandardMaterial({
+			color: this.params.fallbackColor,
+			emissive: this.params.fallbackEmissive,
+			emissiveIntensity: this.params.fallbackEmissiveIntensity,
+			roughness: this.params.fallbackRoughness,
+			metalness: 0,
+		})
+
+		this.fallbackModel.scale.setScalar(this.params.fallbackScale)
+		this.fallbackModel.traverse((child) => {
+			if (!(child instanceof THREE.Mesh)) return
+			child.material = this.fallbackMaterial
+			this.postProcessing.addBloomObject(child)
+		})
+
+		this.scene.add(this.fallbackModel)
+	}
+
+	applyFallback() {
+		if (!this.fallbackModel || !this.fallbackMaterial) return
+
+		this.fallbackModel.scale.setScalar(this.params.fallbackScale)
+		this.fallbackMaterial.color.set(this.params.fallbackColor)
+		this.fallbackMaterial.emissive.set(this.params.fallbackEmissive)
+		this.fallbackMaterial.emissiveIntensity = this.params.fallbackEmissiveIntensity
+		this.fallbackMaterial.roughness = this.params.fallbackRoughness
 	}
 
 	setActive(active) {
@@ -513,5 +551,37 @@ export default class Screen {
 			.step(0.0005)
 			.name('z offset')
 			.onChange(apply)
+
+		const applyFallback = () => this.applyFallback()
+
+		this.debugFolder
+			.add(this.params, 'fallbackScale')
+			.min(0.5)
+			.max(2)
+			.step(0.001)
+			.name('fallback scale')
+			.onChange(applyFallback)
+		this.debugFolder
+			.addColor(this.params, 'fallbackColor')
+			.name('fallback color')
+			.onChange(applyFallback)
+		this.debugFolder
+			.addColor(this.params, 'fallbackEmissive')
+			.name('fallback emissive')
+			.onChange(applyFallback)
+		this.debugFolder
+			.add(this.params, 'fallbackEmissiveIntensity')
+			.min(0)
+			.max(8)
+			.step(0.01)
+			.name('fallback glow')
+			.onChange(applyFallback)
+		this.debugFolder
+			.add(this.params, 'fallbackRoughness')
+			.min(0)
+			.max(1)
+			.step(0.01)
+			.name('fallback roughness')
+			.onChange(applyFallback)
 	}
 }

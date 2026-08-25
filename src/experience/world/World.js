@@ -19,7 +19,6 @@ export default class World {
 			this.lightBis = new BakedModel('lightBisModel', 'bakedLightBis')
 			this.floor = new BakedModel('floorModel', 'bakedFloor')
 			this.others = new OthersModel()
-			this.screenFallback = new BakedModel('screenModel', 'bakedLight')
 			this.environment = new Environment()
 
 			if (this.floor.meshes.floor) {
@@ -29,7 +28,10 @@ export default class World {
 			}
 
 			if (this.light.meshes.computer) {
-				this.screen = new Screen(this.light.meshes.computer, this.screenFallback.model)
+				this.screen = new Screen(
+					this.light.meshes.computer,
+					this.resources.items.screenModel.scene
+				)
 			}
 		})
 	}
