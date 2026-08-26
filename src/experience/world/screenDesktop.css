@@ -201,16 +201,44 @@
 
 .profile-name {
   flex-shrink: 0;
-  padding: 10px 12px;
-  color: #fff;
-  background: #000080;
-  font-size: 18px;
+  padding: 2px 2px 4px;
+  color: #000;
+  background: transparent;
+  font-size: 20px;
+  font-weight: bold;
   line-height: 1.2;
 }
 
 .profile-projects {
   flex-shrink: 0;
   width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: #000080;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #1084d0,
+    inset -2px -2px #003399,
+    inset 2px 2px #3d9eff;
+  cursor: pointer;
+}
+
+.profile-projects:focus {
+  outline: 1px dotted #fff;
+  outline-offset: -6px;
+}
+
+.profile-projects:active {
+  padding: 9px 11px 7px 13px;
+  box-shadow:
+    inset -1px -1px #fff,
+    inset 1px 1px #0a0a0a,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #808080;
 }
 
 .profile-projects.is-hidden {
@@ -322,7 +350,6 @@
 
 button,
 label,
-.profile-projects,
 .profile-field label {
   font-size: 14px;
 }
