@@ -24,6 +24,67 @@ function isContactNamespace(namespace) {
 	return namespace === 'contact'
 }
 
+function parseNextDocument(htmlString) {
+	if (!htmlString) return null
+
+	try {
+		return new DOMParser().parseFromString(htmlString, 'text/html')
+	} catch {
+		return null
+	}
+}
+
+function removeTurnstileWidgets(root) {
+	if (!root) return
+
+	root
+		.querySelectorAll(
+			'.cf-turnstile, iframe[src*="challenges.cloudflare.com"], iframe[src*="turnstile"]',
+		)
+		.forEach((node) => {
+			const widget = node.closest?.('.cf-turnstile') || node
+			widget.remove()
+		})
+}
+
+function syncContactSection(htmlString) {
+	const nextContact = parseNextDocument(htmlString)?.querySelector(CONTACT_SECTION)
+	const currentContact = getContactSection()
+
+	if (!nextContact) return currentContact
+
+	gsap.killTweensOf(currentContact)
+	removeTurnstileWidgets(nextContact)
+
+	if (currentContact) {
+		currentContact.replaceWith(nextContact)
+	} else {
+		const main = document.querySelector(PAGE_CONTAINER)
+		if (main) main.before(nextContact)
+		else document.body.append(nextContact)
+	}
+
+	return getContactSection()
+}
+
+function parkContactSection() {
+	const contact = getContactSection()
+	if (!contact?.parentNode) return null
+
+	gsap.killTweensOf(contact)
+
+	const placeholder = document.createComment('section--contact')
+	contact.parentNode.insertBefore(placeholder, contact)
+	contact.remove()
+
+	return { contact, placeholder }
+}
+
+function unparkContactSection(parked) {
+	if (!parked?.placeholder?.parentNode) return
+	parked.placeholder.replaceWith(parked.contact)
+}
+
 function setContactVisible(visible, { opacity } = {}) {
 	const contact = getContactSection()
 	if (!contact) return
@@ -137,33 +198,41 @@ function resolveNamespace(data) {
 	let fromHtml = null
 
 	if (next?.html) {
-		const doc = new DOMParser().parseFromString(next.html, 'text/html')
+		const doc = parseNextDocument(next.html)
 		fromHtml =
-			readNamespace(doc.querySelector(PAGE_CONTAINER)) ||
-			readNamespace(doc.body) ||
-			readNamespace(doc.documentElement)
+			readNamespace(doc?.querySelector(PAGE_CONTAINER)) ||
+			readNamespace(doc?.body) ||
+			readNamespace(doc?.documentElement)
 	}
 
 	return fromBarba || fromContainer || fromHtml || namespaceFromUrl(next?.url?.href) || 'home'
 }
 
-function resetWebflow(data) {
+function resetWebflow(data, { initContact = false } = {}) {
+	let parked = null
+
 	try {
-		const html = new DOMParser().parseFromString(data.next.html, 'text/html')
-		const wfPage = html.documentElement.getAttribute('data-wf-page')
+		const html = parseNextDocument(data.next.html)
+		const wfPage = html?.documentElement.getAttribute('data-wf-page')
 
 		if (wfPage) {
 			document.documentElement.setAttribute('data-wf-page', wfPage)
 		}
 
-		if (html.body) {
+		if (html?.body) {
 			document.body.className = html.body.className
 
-				;['data-namespace', 'data-barba-namespace'].forEach((attr) => {
-					const value = html.body.getAttribute(attr)
-					if (value) document.body.setAttribute(attr, value)
-					else document.body.removeAttribute(attr)
-				})
+			;['data-namespace', 'data-barba-namespace'].forEach((attr) => {
+				const value = html.body.getAttribute(attr)
+				if (value) document.body.setAttribute(attr, value)
+				else document.body.removeAttribute(attr)
+			})
+		}
+
+		parked = initContact ? null : parkContactSection()
+
+		if (initContact) {
+			removeTurnstileWidgets(getContactSection())
 		}
 
 		window.Webflow?.destroy()
@@ -171,6 +240,8 @@ function resetWebflow(data) {
 		window.Webflow?.require('ix2')?.init()
 	} catch (error) {
 		console.warn('[barba] Webflow reset skipped', error)
+	} finally {
+		unparkContactSection(parked)
 	}
 }
 
@@ -223,9 +294,13 @@ export function initBarba(experience) {
 				beforeEnter(data) {
 					const namespace = resolveNamespace(data)
 					const container = findPageContainer(data.next.container) || data.next.container
+					const isContact = isContactNamespace(namespace)
 
+					if (isContact) syncContactSection(data.next.html)
+
+					resetWebflow(data, { initContact: isContact })
 					gsap.set(container, { opacity: 0 })
-					setContactVisible(isContactNamespace(namespace), { opacity: 0 })
+					setContactVisible(isContact, { opacity: 0 })
 				},
 				enter(data) {
 					const container = findPageContainer(data.next.container) || data.next.container
@@ -253,9 +328,12 @@ export function initBarba(experience) {
 				},
 				after(data) {
 					const namespace = resolveNamespace(data)
-					resetWebflow(data)
-					document.body.classList.toggle('body--contact', isContactNamespace(namespace))
-					initButtons(findPageContainer(data.next.container) || data.next.container)
+					const isContact = isContactNamespace(namespace)
+					const container = findPageContainer(data.next.container) || data.next.container
+
+					document.body.classList.toggle('body--contact', isContact)
+					initButtons(container)
+					if (isContact) initButtons(getContactSection())
 					experience.world?.screen?.syncFromPage()
 					lenis?.resize()
 					ScrollTrigger.refresh()

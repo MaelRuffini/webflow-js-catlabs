@@ -2,6 +2,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -42,6 +43,10 @@
 }
 
 body.disable-scroll {
+  overflow: hidden;
+}
+
+.webgl__wrapper {
   overflow: hidden;
 }
 
