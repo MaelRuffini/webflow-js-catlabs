@@ -155,7 +155,7 @@ export function profileFieldsHtml(file) {
 			({ key, label }) => `
 			<div class="field-row-stacked profile-field">
 				<label>${escapeHtml(label)}</label>
-				<textarea readonly rows="3">${escapeHtml(file[key])}</textarea>
+				<div class="profile-field-value">${escapeHtml(file[key])}</div>
 			</div>
 		`
 		)

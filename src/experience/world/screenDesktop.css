@@ -363,12 +363,20 @@ label,
   color: #000;
 }
 
-.profile-field textarea {
+.profile-field-value {
   width: 100%;
   box-sizing: border-box;
-  min-height: 5.5em;
+  padding: 6px 10px 8px;
+  color: #000;
+  background: #fff;
   font-size: 14px;
-  line-height: 1.35;
-  overflow: hidden;
-  resize: none;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  box-shadow:
+    inset -1px -1px #fff,
+    inset 1px 1px #808080,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px #0a0a0a;
 }
